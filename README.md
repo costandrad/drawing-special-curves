@@ -22,8 +22,7 @@ Cada curva é organizada como uma **unidade independente**, com seu próprio có
 drawing-special-curves/
 │
 ├── astroid/
-│   ├── src/
-│   │   └── astroid.jl
+│   ├── astroid.jl
 │   │
 │   ├── outputs/
 │   │   ├── frames/        # frames temporários (.png)
