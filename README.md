@@ -8,7 +8,7 @@ Cada curva é organizada como uma **unidade independente**, com seu próprio có
 
 ## ✨ Curvas implementadas
 
-- Astroid
+- Astroide
 - (em breve) Cardioide
 - (em breve) Nefroid
 - (em breve) Deltoid

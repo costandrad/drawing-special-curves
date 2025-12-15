@@ -1,5 +1,5 @@
 ###############################################################################
-# Astroid — Hypocycloid Construction Animation
+# Cardioid — Epicycloid Construction Animation
 # Using Luxor.jl
 #
 # Author:      Igo da Costa Andrade
@@ -10,17 +10,21 @@
 #
 # DESCRIPTION
 #   This script generates a vertical-format animation (1080×1920, suitable for
-#   TikTok/Reels) illustrating the geometric construction of the **Astroid**,
-#   a four-cusped hypocycloid.
+#   TikTok/Reels) illustrating the geometric construction of the **Cardioid**,
+#   a one-cusped epicycloid.
+#
+#   The cardioid is obtained as the locus of a point on a circle of radius `a`
+#   rolling *externally* around another circle of the same radius.
 #
 #   Visual flow:
 #     1) Background and Cartesian axes
-#     2) Hypocycloid geometric construction
-#     3) Progressive tracing of the astroid curve
+#     2) Epicycloid geometric construction
+#     3) Progressive tracing of the cardioid curve
 #
 # LICENSE
 #   MIT License
 ###############################################################################
+
 
 using Luxor, Colors, Printf, MathTeXEngine
 
@@ -35,21 +39,20 @@ const DURATION   = 15        # seconds
 const FRAME_RATE = 25        # frames per second
 const TOTAL_FRAMES = DURATION * FRAME_RATE
 
-const CURVE_NAME = "astroid"
+const CURVE_NAME = "cardioid"
 
 # ============================================================================
 # GEOMETRIC PARAMETERS
 # ============================================================================
 
-R = 0.35 * WIDTH       # radius of the fixed circle
-r = R / 4             # radius of the rolling circle
+R = 0.125 * WIDTH       # radius of the fixed circle
 
 # ============================================================================
 # MATHEMATICAL MODEL — HYPOCYCLOID
 # ----------------------------------------------------------------------------
 # Given:
 #   R → radius of the fixed circle
-#   r → radius of the rolling circle
+#   R → radius of the rolling circle
 #   t → parameter
 #
 # Returns:
@@ -57,14 +60,14 @@ r = R / 4             # radius of the rolling circle
 #   P → generating point of the astroid
 # ============================================================================
 
-function hypocycloid(R, r, t)
+function parametric_equations(R, t)
     # Center of the rolling circle
-    xc = (R - r) * cos(t)
-    yc = -(R - r) * sin(t)
+    xc = 2R * cos(t)
+    yc = -(2R * sin(t))
 
     # Generating point on the rolling circle
-    x = xc + r * cos(((R - r) / r) * t)
-    y = yc + r * sin(((R - r) / r) * t)
+    x = xc - R * cos(2t)
+    y = yc + R * sin(2t)
 
     return Point(xc, yc), Point(x, y)
 end
@@ -83,7 +86,7 @@ function draw_backdrop(scene, frame)
     fontface("Open Sans")
 
     # Background
-    background("grey10")
+    background("black")
 
     # ------------------------------------------------------------------------
     # Cartesian axes
@@ -110,54 +113,20 @@ function draw_geometry(scene, frame)
     t = (2π / TOTAL_FRAMES) * frame
 
     # Main geometric entities
-    C, P = hypocycloid(R, r, t)
+    C, P = parametric_equations(R, t)
     T = Point(R * cos(t), -R * sin(t))   # contact point on the fixed circle
-
-    fontsize(50)
-    fontface("Open Sans")
-
-    # ------------------------------------------------------------------------
-    # Key points
-    # ------------------------------------------------------------------------
-
-    circle(T, 8, :fill)
-    text(L"\mathrm{T}",
-         Point(1.05R * cos(t), -1.05R * sin(t)),
-         halign = :center, valign = :center)
-
-    circle(P, 8, :fill)
-    text(L"\mathrm{P}",
-         Point((R - r) * cos(t) + 1.20r * cos(((R - r) / r) * t),
-               -(R - r) * sin(t) + 1.20r * sin(((R - r) / r) * t)),
-         halign = :center, valign = :center)
-
-    # ------------------------------------------------------------------------
-    # Circles and auxiliary geometry
-    # ------------------------------------------------------------------------
-
-    circle(O, R, :stroke)     # fixed circle
-    circle(C, r, :stroke)     # rolling circle
-    circle(C, 8, :fill)       # center of rolling circle
-
-    line(O, T, :stroke)       # radius of fixed circle
-    line(T, P, :stroke)       # generating radius
-
-    # Parameter label
-    text(L"\mathrm{a}",
-         Point(-R / 2, -25),
-         halign = :center, valign = :center)
 
     # ------------------------------------------------------------------------
     # Title and descriptive text
     # ------------------------------------------------------------------------
 
     setfont("Open Sans Extrabold", 81)
-    settext("Astroid",
+    settext("Cardioid",
             Point(0, -0.4 * HEIGHT),
             halign = "center", valign = "center")
 
     setfont("Open Sans", 48)
-    settext("The Astroid is a four-cusped hypocycloid:",
+    settext("The Cardioid is a one-cusped epicycloid:",
             Point(0, -0.35 * HEIGHT),
             halign = "center", valign = "center")
 
@@ -165,20 +134,68 @@ function draw_geometry(scene, frame)
             Point(0, -0.31 * HEIGHT),
             halign = "center", valign = "center")
 
-    settext("inside another with four times its radius.",
+    settext("outside another with equal radius size.",
             Point(0, -0.27 * HEIGHT),
             halign = "center", valign = "center")
 
+
+    fontsize(50)
+    fontface("Open Sans")
+
     # ------------------------------------------------------------------------
-    # Parametric equations
+    # Circles and auxiliary geometry
     # ------------------------------------------------------------------------
 
-    text(L"\mathrm{x(t) = a\ \cos^3(t)}",
-         Point(0, 0.25 * HEIGHT),
+    circle(O, R, :stroke)     # fixed circle
+    circle(C, R, :stroke)     # rolling circle
+    circle(C, 8, :fill)       # center of rolling circle
+
+    line(O, C, :stroke)       # radius of fixed circle
+    line(C, P, :stroke)       # generating radius
+
+    # Parameter label
+    text(L"\mathrm{a}",
+         Point(-R / 2, -15),
          halign = :center, valign = :center)
 
-    text(L"\mathrm{y(t) = a\ \sin^3(t)}",
+    # ------------------------------------------------------------------------
+    # Key points
+    # ------------------------------------------------------------------------
+
+    
+    setcolor("red")
+    circle(T, 8, :fill)
+    text(L"\mathrm{T}",
+         Point(1.20 * T.x, 1.20 * T.y),
+         halign = :center, valign = :center)
+    setcolor("white")
+
+    
+    setcolor("blue")
+    circle(P, 8, :fill)
+    text(L"\mathrm{P}",
+         Point(C.x - 1.20R * cos(2t),
+               C.y + 1.20R * sin(2t)),
+         halign = :center, valign = :center)
+    setcolor("white")
+
+
+
+    # ------------------------------------------------------------------------
+    # Equations
+    # ------------------------------------------------------------------------
+    setfont("Open Sans Extrabold", 50)
+    settext(
+        "Parametric Equations",
+        Point(0, 0.25 * HEIGHT),
+        halign = "center", valign = "center"
+    )
+    text(L"\mathrm{x(t) = a\ (2 \cos\ t - \cos\ 2t)}",
          Point(0, 0.30 * HEIGHT),
+         halign = :center, valign = :center)
+
+    text(L"\mathrm{y(t) = a\ (2 \sin\ t - \sin\ 2t)}",
+         Point(0, 0.33 * HEIGHT),
          halign = :center, valign = :center)
 end
 
@@ -190,8 +207,8 @@ function draw_curve(scene, frame)
     for i in 1:frame
         setcolor(HSV(i, 1.0, 1.0))
 
-        _, P1 = hypocycloid(R, r, (2π / TOTAL_FRAMES) * (i - 1))
-        _, P2 = hypocycloid(R, r, (2π / TOTAL_FRAMES) * i)
+        _, P1 = parametric_equations(R, (2π / TOTAL_FRAMES) * (i - 1))
+        _, P2 = parametric_equations(R, (2π / TOTAL_FRAMES) * i)
 
         line(P1, P2, :stroke)
     end
@@ -208,6 +225,7 @@ if isdir(frames_dir)
     rm(frames_dir; force=true, recursive=true)
 end
 mkdir(frames_dir)
+
 
 animate(
     movie,
