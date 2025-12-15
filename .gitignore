@@ -1,0 +1,77 @@
+############################
+# Julia
+############################
+
+# Compilados / cache
+*.ji
+*.so
+*.dll
+*.dylib
+
+# Ambiente Julia
+/.julia/
+/deps/deps.jl
+
+# Manifest (opcional)
+# Comente a linha abaixo se quiser reprodutibilidade total
+/Manifest.toml
+
+############################
+# Outputs gerados (por curva)
+############################
+
+# Frames individuais
+**/outputs/frames/
+
+# Mantém o último frame (exemplo: 0000000375.png)
+!**/outputs/frames/0000000*.png
+
+# # Arquivos finais
+# **/outputs/*.gif
+# **/outputs/*.mp4
+# **/outputs/*.mov
+# **/outputs/*.avi
+# **/outputs/*.png
+# **/outputs/*.jpg
+# **/outputs/*.jpeg
+# **/outputs/*.svg
+# **/outputs/*.pdf
+# **/outputs/*.fig
+
+############################
+# Notebooks / experimentos
+############################
+
+.ipynb_checkpoints/
+
+############################
+# Editores
+############################
+
+.vscode/
+.idea/
+
+# Vim
+*.swp
+*.swo
+*.swn
+
+############################
+# Sistema Operacional
+############################
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+############################
+# Temporários
+############################
+
+*.log
+*.tmp
+*.bak
+*~
