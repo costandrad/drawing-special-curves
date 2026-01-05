@@ -26,8 +26,8 @@ const NUM_POINTS = 500
 
 function bernoulli_lemniscate(t, a)
     denom = 1 + sin(t)^2
-    x = c * √2 * cos(t) / denom
-    y = c * √2 * cos(t) * sin(t) / denom
+    x = c * cos(t) / denom
+    y = c * cos(t) * sin(t) / denom
     return Point(x, -y)  # Inverte y para coordenadas de tela
 end
 
