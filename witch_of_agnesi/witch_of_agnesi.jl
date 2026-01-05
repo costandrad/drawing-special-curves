@@ -1,127 +1,140 @@
 ###############################################################################
-# Witch of Agnesi —  Construction Animation
-# Using Luxor.jl
+# Witch of Agnesi Animation
 #
-# Author:      Igo da Costa Andrade
-# GitHub:      https://github.com/costandrad
-# TikTok:      https://www.tiktok.com/@costandrad.pi
-# Repository:  https://github.com/costandrad/drawing-special-curves
-# Date:        2025-12-10
+# Gera uma animação da Witch of Agnesi utilizando Luxor.
+# O resultado final é exportado como GIF e MP4.
 #
-# DESCRIPTION
-#   This script generates a vertical-format animation (1080×1920, suitable for
-#   TikTok/Reels) illustrating the geometric construction of the **Witch of Agnesi**.
-#
-#   Visual flow:
-#     1) Background and Cartesian axes
-#     2) Geometric construction
-#     3) Progressive tracing of the Witch of Agnesi curve
-#
-# LICENSE
-#   MIT License
+# Dependências:
+#   Luxor, Colors, Printf, MathTeXEngine
 ###############################################################################
 
-using Luxor, Colors, Printf, MathTeXEngine
+using Luxor
+using Colors
+using Printf
+using MathTeXEngine
 
-# ============================================================================
-# GLOBAL SETTINGS — CANVAS, TIMING, NAMING
-# ============================================================================
-CANVA_WIDTH, CANVA_HEIGHT = 1080, 1920
-CURVE_NAME = "witch_of_agnesi"
+###############################################################################
+# CONFIGURAÇÕES GERAIS DO VÍDEO
+###############################################################################
 
-DURATION = 5        # SECONDS
-FPS = 25            # FRAMES PER SECOND
-TOTAL_OF_FRAMES = FPS * DURATION
+const WIDTH  = 1080
+const HEIGHT = 1920
 
+const DURATION     = 5
+const FRAME_RATE   = 20
+const TOTAL_FRAMES = DURATION * FRAME_RATE
 
-# ============================================================================
-# GEOMETRIC PARAMETERS
-# ============================================================================
-X_AXIS, Y_AXIS = 0.4*CANVA_WIDTH, 0.25*CANVA_WIDTH
-X_MIN, X_MAX = -X_AXIS, X_AXIS
-Y_MIN, Y_MAX = 0.1*Y_AXIS, -Y_AXIS
+const CURVE_NAME = "witch_of_agnesi"
 
-# ============================================================================
-# MATHEMATICAL MODEL
-# ----------------------------------------------------------------------------
-a = 0.4*Y_AXIS
+###############################################################################
+# PARÂMETROS GEOMÉTRICOS E MATEMÁTICOS
+###############################################################################
 
-function agnesi_curve(θ, a)
-    A = Point(a * sin(2θ), -2a * (cos(θ))^2)
+const X_AXIS = 0.4 * WIDTH
+const Y_AXIS = 0.25 * WIDTH
+
+const X_MIN, X_MAX = -X_AXIS, X_AXIS
+const Y_MIN, Y_MAX =  0.1Y_AXIS, -Y_AXIS
+
+const a = 0.4 * Y_AXIS   # parâmetro fundamental da curva
+
+###############################################################################
+# DEFINIÇÃO MATEMÁTICA DA CURVA
+###############################################################################
+
+"""
+    agnesi_construction(θ, a)
+
+Retorna os pontos geométricos envolvidos na construção da Witch of Agnesi:
+
+- A: ponto sobre o círculo auxiliar
+- N: interseção com a reta horizontal
+- P: ponto da curva propriamente dita
+
+A parametrização é baseada na construção clássica via tangente.
+"""
+function agnesi_construction(θ::Real, a::Real)
+    A = Point(a * sin(2θ), -2a * cos(θ)^2)
     N = Point(2a * tan(θ), -2a)
     P = Point(N.x, A.y)
     return A, N, P
 end
 
-points = [agnesi_curve(θ, a)[3] for θ ∈ π/3:(-(2π/3)/TOTAL_OF_FRAMES):-π/3]
+###############################################################################
+# AMOSTRAGEM DOS PONTOS DA CURVA
+###############################################################################
 
-# ============================================================================
+θ_min, θ_max =  π/3, -π/3
+dθ = (θ_max - θ_min) / TOTAL_FRAMES
 
+curve_points = [
+    agnesi_construction(θ, a)[3]
+    for θ in θ_min:dθ:θ_max
+]
 
+###############################################################################
+# CENA 1 — FUNDO E EIXOS CARTESIANOS
+###############################################################################
 
-# ============================================================================
-# SCENE 1 — BACKGROUND AND CARTESIAN AXES
-# ============================================================================
+function draw_backdrop(scene, frame)
+    background("gray13")
 
-function backdrop(scene, frame)
-
-    # Drawing defaults
     setcolor("white")
     setline(5)
 
     fontsize(50)
     fontface("Open Sans")
 
-    # Background
-    background("grey13")
-
-    # ------------------------------------------------------------------------
-    # Cartesian axes
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Eixos cartesianos
+    # -------------------------------------------------------------------------
 
     arrow(Point(X_MIN, 0), Point(X_MAX, 0),
-          linewidth = 5, arrowheadlength = 25)
+          arrowheadlength = 25)
     text(L"\mathrm{x}",
          Point(X_MAX, 50),
-         halign = :center, valign = :center)
+         halign=:center, valign=:center)
 
     arrow(Point(0, Y_MIN), Point(0, Y_MAX),
-          linewidth = 5, arrowheadlength = 25)
+          arrowheadlength = 25)
     text(L"\mathrm{y}",
          Point(-50, Y_MAX),
-         halign = :center, valign = :center)
+         halign=:center, valign=:center)
 end
 
-# ============================================================================
-# SCENE 2 — GEOMETRIC CONSTRUCTION AND ANNOTATIONS
-# ============================================================================
+###############################################################################
+# CENA 2 — CONSTRUÇÃO GEOMÉTRICA E TEXTOS
+###############################################################################
 
 function draw_geometry(scene, frame)
-    θ = π/3 - ((2π/3) / TOTAL_OF_FRAMES) * frame
+    θ = θ_min + dθ * frame
 
     fontsize(40)
     fontface("Open Sans")
     setcolor("white")
 
-    # ------------------------------------------------------------------------
-    # Key points
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Pontos fundamentais
+    # -------------------------------------------------------------------------
 
     O = Point(0, 0)
     M = Point(0, -2a)
-    A, N, P = agnesi_curve(θ, a)
 
+    A, N, P = agnesi_construction(θ, a)
 
-    # setcolor(HSV(rad2deg(θ), 0.5, 1.0))
-    # oly(points[1:frame], :stroke, close=false)
-    # setcolor(HSV(rad2deg(θ), 0.5, 1.0))
-    for i in 2:TOTAL_OF_FRAMES
-        setcolor(HSV(rad2deg(θ), 0.5, 1.0))
-        p1, p2 = points[i-1], points[i]
-        line(p1, p2, :stroke)
-        setcolor("white")
+    # -------------------------------------------------------------------------
+    # Traçado progressivo da curva
+    # -------------------------------------------------------------------------
+
+    setline(3)
+    for i in 2:min(frame, length(curve_points))
+        setcolor(HSV(rad2deg(θ) % 360, 0.6, 1.0))
+        line(curve_points[i-1], curve_points[i], :stroke)
     end
-    
+
+    # -------------------------------------------------------------------------
+    # Elementos da construção geométrica
+    # -------------------------------------------------------------------------
 
     setcolor("gray")
     circle(Point(0, -a), a, :stroke)
@@ -129,99 +142,72 @@ function draw_geometry(scene, frame)
     line(O, N, :stroke)
     line(A, P, :stroke)
     line(N, Point(N.x, 0), :stroke)
+
+    # Pontos destacados
     setcolor("white")
+    foreach(p -> circle(p, 8, :fill), [O, M, A, N, P])
 
-    circle(O, 10, :fill)
-    text(L"O",
-        Point(-40, 50),
-        halign=:center, valign=:center
-    )
-    
-    circle(M, 10, :fill)
-    text(L"M",
-        Point(M.x-40, M.y-10),
-        halign=:center, valign=:center
-    )
-    
+    # Rótulos
+    text(L"O", O + Point(-30, 40))
+    text(L"M", M + Point(-30, -10))
+    text(L"A", A + Point(-30, 0))
+    text(L"N", N + Point(-30, -10))
+    text(L"P", P + Point(30, -10))
 
-    circle(A, 10, :fill)
-    text(L"A",
-        Point(A.x-30, A.y),
-        halign=:center, valign=:center
-    )
+    # -------------------------------------------------------------------------
+    # Título
+    # -------------------------------------------------------------------------
 
-    circle(N, 10, :fill)
-    text(L"N",
-        Point(N.x-30, N.y-10),
-        halign=:center, valign=:center
-    )
-    
+    fontsize(70)
+    fontface("Open Sans Extrabold")
+    text("Witch of Agnesi",
+         Point(0, -HEIGHT/2.5),
+         halign=:center)
 
-    circle(P, 10, :fill)
-    text(L"P",
-        Point(P.x+30, P.y-10),
-        halign=:center, valign=:center
-    )
+    # -------------------------------------------------------------------------
+    # Texto descritivo
+    # -------------------------------------------------------------------------
 
+    fontsize(42)
+    fontface("Open Sans")
 
-    # ------------------------------------------------------------------------
-    # Title and descriptive text
-    # ------------------------------------------------------------------------
-
-    setfont("Open Sans Extrabold", 72)
-    settext("Witch of Agnesi",
-            Point(0, -0.4 * CANVA_HEIGHT),
-            halign = "center", valign = "center")
-
-    setfont("Open Sans", 45)
-    if frame < 0.25*TOTAL_OF_FRAMES
-    settext("The curve gained fame with Italian mathematician",
-            Point(0, -0.35 * HEIGHT),
-            halign = "center", valign = "center")
-
-    settext("Maria Gaetana Agnesi in 1748, but its history",
-            Point(0, -0.31 * HEIGHT),
-            halign = "center", valign = "center")
-
-    settext("includes earlier studies by Fermat, Grandi, and Newton.",
-            Point(0, -0.27 * HEIGHT),
-            halign = "center", valign = "center")
-
-    settext("The name 'witch' arose from a mistaken",
-            Point(0, -0.23 * HEIGHT),
-            halign = "center", valign = "center")
-    settext("translation of the technical term 'versoria'",
-            Point(0, -0.19 * HEIGHT),
-            halign = "center", valign = "center")
+    if frame < TOTAL_FRAMES ÷ 2
+        text("Plane curve studied by Fermat, Grandi and Newton",
+             Point(0, -HEIGHT/3.3),
+             halign=:center)
+        text("popularized by Maria Gaetana Agnesi in 1748",
+             Point(0, -HEIGHT/3.3 + 60),
+             halign=:center)
+    else
+        text("Its name arose from a mistranslation of",
+             Point(0, -HEIGHT/3.3),
+             halign=:center)
+        text("the Italian term 'versoria'",
+             Point(0, -HEIGHT/3.3 + 60),
+             halign=:center)
     end
-        
 
-    # ------------------------------------------------------------------------
-    # Parametric equations
-    # ------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Equações paramétricas
+    # -------------------------------------------------------------------------
 
-    text(L"\mathrm{x(\theta) = 2a\ \tan \theta }",
-         Point(0, 0.25 * CANVA_HEIGHT),
-         halign = :center, valign = :center)
+    fontsize(44)
+    fontface("Open Sans Extrabold")
 
-    text(L"\mathrm{y(\theta) = 2a\ \cos^2 \theta }",
-         Point(0, 0.30 * CANVA_HEIGHT),
-         halign = :center, valign = :center)
+    text(L"\mathrm{x(\theta) = 2a\tan\theta}",
+         Point(0, HEIGHT/4.5),
+         halign=:center)
+
+    text(L"\mathrm{y(\theta) = 2a\cos^2\theta}",
+         Point(0, HEIGHT/4.5 + 90),
+         halign=:center)
 end
 
-# ============================================================================
-# SCENE 3 — PROGRESSIVE TRACE OF THE ASTROID
-# ============================================================================
+###############################################################################
+# CRIAÇÃO DA ANIMAÇÃO
+###############################################################################
 
-function draw_curve(scene, frame)
-
-end
-
-# ============================================================================
-# ANIMATION SETUP AND GIF EXPORT
-# ============================================================================
-
-movie = Movie(CANVA_WIDTH, CANVA_HEIGHT, CURVE_NAME, 1:TOTAL_OF_FRAMES)
+movie = Movie(WIDTH, HEIGHT, CURVE_NAME, 1:TOTAL_FRAMES)
 
 frames_dir = joinpath(pwd(), "$(CURVE_NAME)/outputs/frames")
 if isdir(frames_dir)
@@ -232,30 +218,26 @@ mkdir(frames_dir)
 animate(
     movie,
     [
-        Scene(movie, backdrop, 1:TOTAL_OF_FRAMES),
-        Scene(movie, draw_geometry, 1:TOTAL_OF_FRAMES),
-        # Scene(movie, draw_curve,    1:TOTAL_FRAMES)
+        Scene(movie, draw_backdrop, 1:TOTAL_FRAMES),
+        Scene(movie, draw_geometry, 1:TOTAL_FRAMES)
     ],
     creategif     = true,
-    framerate     = FPS,
+    framerate     = FRAME_RATE,
     tempdirectory = frames_dir,
     pathname      = joinpath(
-        pwd(),
-        "$(CURVE_NAME)/outputs/$(CURVE_NAME).gif"
+        pwd(), "$(CURVE_NAME)/outputs/$(CURVE_NAME).gif"
     )
 )
 
-# ============================================================================
-# OPTIONAL MP4 EXPORT (requires ffmpeg)
-# ============================================================================
+###############################################################################
+# EXPORTAÇÃO PARA MP4 (FFMPEG)
+###############################################################################
 
 mp4_path = joinpath(pwd(), "$(CURVE_NAME)/outputs/$(CURVE_NAME).mp4")
 
-cmd = `ffmpeg -y -r $FPS -i "$(frames_dir)/%10d.png" -c:v h264 -crf 0 "$(mp4_path)"`
+cmd = `ffmpeg -y -r $FRAME_RATE -i "$(frames_dir)/%10d.png" -c:v h264 -crf 0 "$(mp4_path)"`
 
 println("\nGenerating MP4 using ffmpeg...\n")
-println(cmd)
-
 run(cmd)
 
 println("\nMP4 generated at: $(mp4_path)")
